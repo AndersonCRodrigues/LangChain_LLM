@@ -16,3 +16,12 @@ install:
 
 wsgi:
 	@$(VENV)/bin/gunicorn wsgi:app --bind 0.0.0.0:$(PORT)
+
+weaviate:
+	@docker run -d \
+  -p 8080:8080 \
+  -e QUERY_DEFAULTS_LIMIT=20 \
+  -e AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED=true \
+  -e PERSISTENCE_DATA_PATH=/var/lib/weaviate \
+  --name weaviate \
+  semitechnologies/weaviate:latest
