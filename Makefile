@@ -25,3 +25,6 @@ weaviate:
   -e PERSISTENCE_DATA_PATH=/var/lib/weaviate \
   --name weaviate \
   semitechnologies/weaviate:latest
+
+bot_financeiro:
+	@streamlit run openai/tools/tools_3.py
