@@ -20,11 +20,15 @@ wsgi:
 weaviate:
 	@docker run -d \
   -p 8080:8080 \
+  -p 50051:50051 \
   -e QUERY_DEFAULTS_LIMIT=20 \
   -e AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED=true \
   -e PERSISTENCE_DATA_PATH=/var/lib/weaviate \
+  -e ENABLE_GRPC=true \
+  -v "/home/anderson/Documentos/Projeto Pessoal/LangChain_LLM/weavite_db:/var/lib/weaviate" \
   --name weaviate \
   semitechnologies/weaviate:latest
+
 
 bot_financeiro:
 	@streamlit run openai/tools/tools_3.py
