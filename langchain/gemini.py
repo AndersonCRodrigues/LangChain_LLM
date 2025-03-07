@@ -7,3 +7,4 @@ googleai_client = ChatGoogleGenerativeAI(
     google_api_key=GOOGLE_API_KEY,
     model="gemini-2.0-flash-lite",
 )
+
