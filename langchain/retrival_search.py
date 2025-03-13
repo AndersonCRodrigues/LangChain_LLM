@@ -29,9 +29,7 @@ weaviate_store = WeaviateVectorStore(
 
 def list_pdf_files(directory="files"):
     return [
-        os.path.join(directory, f)
-        for f in os.listdir(directory)
-        if f.endswith(".pdf")
+        os.path.join(directory, f) for f in os.listdir(directory) if f.endswith(".pdf")
     ]
 
 
@@ -59,13 +57,14 @@ def load_and_split_documents():
 
 def initialize_qa_chain():
     retriever = weaviate_store.as_retriever(
-        search_type="similarity",
-        search_kwargs={"k": 5},
+        search_type="mmr",
+        search_kwargs={"k": 3, "fetch_k": 10},
     )
 
     system_prompt = (
         "Use o contexto fornecido para responder à pergunta. "
         "Se não souber a resposta, diga que não sabe. "
+        "Responda em portugês. "
         "Contexto: {context}"
     )
 
@@ -76,7 +75,10 @@ def initialize_qa_chain():
         ]
     )
 
-    question_answer_chain = create_stuff_documents_chain(llm, prompt)
+    question_answer_chain = create_stuff_documents_chain(
+        llm=llm,
+        prompt=prompt,
+    )
     return create_retrieval_chain(retriever, question_answer_chain)
 
 
