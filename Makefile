@@ -25,7 +25,6 @@ weaviate:
   -e AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED=true \
   -e PERSISTENCE_DATA_PATH=/var/lib/weaviate \
   -e ENABLE_GRPC=true \
-  -v "/home/anderson/Documentos/Projeto Pessoal/LangChain_LLM/weavite_db:/var/lib/weaviate" \
   --name weaviate \
   semitechnologies/weaviate:latest
 
