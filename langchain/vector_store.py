@@ -77,8 +77,13 @@ def main():
 
     qa_chain = initialize_qa_chain()
     pergunta = "Quais os principais métodos para manipulação de string?"
-    resposta = handle_question(qa_chain, pergunta)
-    print(resposta)
+    
+    respostas_1 = weaviate_store.similarity_search(pergunta)
+    for resposta in respostas_1:
+        print(resposta.page_content)
+
+    respostas_2 = handle_question(qa_chain, pergunta)
+    print(respostas_2)
 
 
 if __name__ == "__main__":
