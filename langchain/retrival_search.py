@@ -1,8 +1,11 @@
+import os
 import warnings
+import time
 from langchain_community.document_loaders import PyMuPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain.prompts import PromptTemplate
-from langchain.chains import RetrievalQA
+from langchain_core.prompts import ChatPromptTemplate
+from langchain.chains import create_retrieval_chain
+from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_weaviate import WeaviateVectorStore
 from gemini import google_embedding, googleai_client
 from weaviate_client import weaviate_client
@@ -15,7 +18,7 @@ set_llm_cache(SQLiteCache(database_path="files/vector_store_cache.db"))
 embedding_model = google_embedding
 llm = googleai_client
 
-index_name = "documents"
+index_name = "new_documents"
 weaviate_store = WeaviateVectorStore(
     client=weaviate_client,
     index_name=index_name,
@@ -24,62 +27,85 @@ weaviate_store = WeaviateVectorStore(
 )
 
 
+def list_pdf_files(directory="files"):
+    return [
+        os.path.join(directory, f)
+        for f in os.listdir(directory)
+        if f.endswith(".pdf")
+    ]
+
+
 def load_and_split_documents():
-    """Carregar e dividir o documento em pedaços menores."""
-    loader = PyMuPDFLoader("files/apostila.pdf")
-    paginas = loader.load()
+    paths = list_pdf_files()
+    paginas = []
+
+    for path in paths:
+        loader = PyMuPDFLoader(path)
+        paginas.extend(loader.load())
 
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=500,
         chunk_overlap=50,
         separators=["\n\n", "\n", ".", " ", ""],
     )
-    return splitter.split_documents(paginas)
+    documents = splitter.split_documents(paginas)
+
+    for i, doc in enumerate(documents):
+        doc.metadata["source"] = doc.metadata["source"].replace("files/", "")
+        doc.metadata["doc_id"] = i
+
+    return documents
 
 
 def initialize_qa_chain():
-    """Inicializar o fluxo de QA."""
     retriever = weaviate_store.as_retriever(
         search_type="similarity",
         search_kwargs={"k": 5},
     )
 
-    return RetrievalQA.from_chain_type(
-        llm=llm,
-        chain_type="refine",
-        retriever=retriever,
-        return_source_documents=True,
+    system_prompt = (
+        "Use o contexto fornecido para responder à pergunta. "
+        "Se não souber a resposta, diga que não sabe. "
+        "Contexto: {context}"
     )
 
-
-def handle_question(qa_chain, question):
-    """Processar uma pergunta e obter a resposta."""
-    prompt_template = PromptTemplate(
-        input_variables=["pergunta"],
-        template="""
-        Responda a seguinte pergunta de forma clara,
-        dando exemplos do documento,
-        de objetiva em português: {pergunta}
-        """,
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            ("system", system_prompt),
+            ("human", "{input}"),
+        ]
     )
-    prompt_formatado = prompt_template.format(pergunta=question)
-    return qa_chain.invoke(prompt_formatado)["result"]
+
+    question_answer_chain = create_stuff_documents_chain(llm, prompt)
+    return create_retrieval_chain(retriever, question_answer_chain)
+
+
+def handle_question(chain, question):
+    return chain.invoke({"input": question})["answer"]
+
+
+def check_existing_documents():
+    collection = weaviate_client.collections.get(index_name)
+    return collection.aggregate.over_all(total_count=True).total_count
 
 
 def main():
-    collection = weaviate_client.collections.get(index_name)
-    object_count = collection.aggregate.over_all(total_count=True).total_count
-
-    if object_count == 0:
+    if check_existing_documents() == 0:
         print("Nenhum documento encontrado. Carregando novamente...")
-        documents = load_and_split_documents()
-        weaviate_store.add_documents(documents)
+        new_documents = load_and_split_documents()
+        weaviate_store.add_documents(new_documents)
 
+    start_time = time.time()
     qa_chain = initialize_qa_chain()
-    pergunta = "Quais os principais métodos para manipulação de string?"
-
+    pergunta = "O que é LLM?"
     resposta = handle_question(qa_chain, pergunta)
     print(resposta)
+    elapsed_time = time.time() - start_time
+
+    if elapsed_time < 1:
+        print("✅ Resposta veio do cache!")
+    else:
+        print("❌ LLM foi chamado!")
 
 
 if __name__ == "__main__":

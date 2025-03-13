@@ -45,7 +45,15 @@ def load_documents_if_empty():
 
 
 def search_and_print_answers(query):
-    respostas = weaviate_store.similarity_search(query)
+    respostas = weaviate_store.similarity_search(query, k=5)
+    for resposta in respostas:
+        print(resposta.page_content)
+
+    respostas = weaviate_store.max_marginal_relevance_search(
+        query,
+        k=3,
+        fetch_k=10,
+    )
     for resposta in respostas:
         print(resposta.page_content)
 
