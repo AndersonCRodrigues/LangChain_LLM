@@ -1,3 +1,4 @@
+import time
 from langchain_community.document_loaders import PyMuPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.prompts import ChatPromptTemplate
@@ -5,13 +6,9 @@ from langchain_weaviate import WeaviateVectorStore
 from gemini import google_embedding, googleai_client
 from weaviate_client import weaviate_client
 from langchain_community.cache import SQLiteCache
-from langchain.globals import set_llm_cache
-from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnableParallel, RunnablePassthrough
 
 cache = SQLiteCache(database_path="files/vector_store_cache.db")
-
-set_llm_cache(cache)
 
 embedding_model = google_embedding
 llm = googleai_client
@@ -67,7 +64,6 @@ template_str = """
         Pergunta: {pergunta}
         """
 template = ChatPromptTemplate.from_template(template_str)
-output_parser = StrOutputParser()
 
 retriever = weaviate_store.as_retriever(
     search_type="mmr",
@@ -77,11 +73,27 @@ retriever = weaviate_store.as_retriever(
 setup_retrieval = RunnableParallel(
     {"pergunta": RunnablePassthrough(), "contexto": retriever}
 )
-chain = setup_retrieval | template | llm | output_parser
+chain = setup_retrieval | template | llm
+
+
+def invoke_with_cache(chain, pergunta):
+    if cache_response := cache.lookup(pergunta, "gemini"):
+        print("Usando cache!")
+        return next(item[1] for item in cache_response if item[0] == "content")
+
+    print("Usando LLM!")
+    resposta = chain.invoke(pergunta)
+    cache.update(pergunta, "gemini", resposta)
+    return next(item[1] for item in resposta if item[0] == "content")
+
 
 try:
-    resposta = chain.invoke("O que é LLM?")
+    pergunta = "O que é LLM?"
+    start_time = time.time()
+    resposta = invoke_with_cache(chain, pergunta)
+    elapsed_time = time.time() - start_time
     print(resposta)
+    print(f"Tempo de resposta: {elapsed_time}")
 
 finally:
     weaviate_client.close()
