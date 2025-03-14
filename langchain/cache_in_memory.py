@@ -1,10 +1,12 @@
 import time
 from langchain_core.messages import HumanMessage, SystemMessage
-from langchain.cache import InMemoryCache
+from langchain_community.cache import SQLiteCache
 from langchain.globals import set_llm_cache
 from gemini import googleai_client
 
-set_llm_cache(InMemoryCache())
+cache = SQLiteCache(database_path="files/vector_store_cache.db")
+
+set_llm_cache(cache)
 
 llm = googleai_client
 mensagens = [

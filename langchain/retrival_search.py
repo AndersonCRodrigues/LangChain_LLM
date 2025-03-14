@@ -1,5 +1,4 @@
 import os
-import warnings
 import time
 from langchain_community.document_loaders import PyMuPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -12,7 +11,6 @@ from weaviate_client import weaviate_client
 from langchain_community.cache import SQLiteCache
 from langchain.globals import set_llm_cache
 
-warnings.simplefilter("ignore", category=DeprecationWarning)
 set_llm_cache(SQLiteCache(database_path="files/vector_store_cache.db"))
 
 embedding_model = google_embedding
@@ -105,9 +103,9 @@ def main():
     elapsed_time = time.time() - start_time
 
     if elapsed_time < 1:
-        print("✅ Resposta veio do cache!")
+        print(f"✅ Resposta veio do cache! Tempo: {elapsed_time}")
     else:
-        print("❌ LLM foi chamado!")
+        print(f"❌ LLM foi chamado! Tempo: {elapsed_time}")
 
 
 if __name__ == "__main__":
