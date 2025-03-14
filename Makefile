@@ -25,6 +25,8 @@ weaviate:
   -e AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED=true \
   -e PERSISTENCE_DATA_PATH=/var/lib/weaviate \
   -e ENABLE_GRPC=true \
+  -e WEAVIATE_DEFAULT_VECTORIZER=text2vec-transformers \
+  -e WEAVIATE_ENABLE_MODULES=text2vec-transformers \
   --name weaviate \
   semitechnologies/weaviate:latest
 
