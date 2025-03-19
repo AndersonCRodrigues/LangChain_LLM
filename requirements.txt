@@ -46,6 +46,7 @@ h11==0.14.0
 httpcore==1.0.7
 httpx==0.28.1
 httpx-sse==0.4.0
+huggingface-hub==0.29.3
 idna==3.10
 ipykernel==6.29.5
 ipython==9.0.0
@@ -53,6 +54,7 @@ ipython_pygments_lexers==1.1.1
 jedi==0.19.2
 Jinja2==3.1.5
 jiter==0.8.2
+joblib==1.4.2
 jsonpatch==1.33
 jsonpointer==3.0.0
 jsonschema==4.23.0
@@ -64,6 +66,7 @@ langchain==0.3.20
 langchain-community==0.3.19
 langchain-core==0.3.41
 langchain-google-genai==2.0.11
+langchain-huggingface==0.1.2
 langchain-openai==0.3.7
 langchain-text-splitters==0.3.6
 langchain-weaviate==0.0.4
@@ -141,6 +144,10 @@ requests-toolbelt==1.0.0
 rich==13.9.4
 rpds-py==0.23.1
 rsa==4.9
+safetensors==0.5.3
+scikit-learn==1.6.1
+scipy==1.15.2
+sentence-transformers==3.4.1
 simsimd==6.2.1
 six==1.17.0
 smmap==5.0.2
@@ -151,12 +158,15 @@ stack-data==0.6.3
 streamlit==1.42.2
 sympy==1.13.1
 tenacity==9.0.0
+threadpoolctl==3.6.0
 tiktoken==0.9.0
+tokenizers==0.21.1
 toml==0.10.2
 torch==2.6.0
 tornado==6.4.2
 tqdm==4.67.1
 traitlets==5.14.3
+transformers==4.49.0
 triton==3.2.0
 typing-inspect==0.9.0
 typing_extensions==4.12.2
@@ -166,6 +176,7 @@ validators==0.34.0
 watchdog==6.0.0
 wcwidth==0.2.13
 weaviate-client==4.11.1
+wikipedia==1.4.0
 yarl==1.18.3
 yfinance==0.2.54
 zstandard==0.23.0

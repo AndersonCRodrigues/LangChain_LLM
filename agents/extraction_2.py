@@ -22,14 +22,17 @@ class BlogPost(BaseModel):
 class BlogSite(BaseModel):
     """Conjunto de postagens de blog de um site específico"""
 
-    posts: List[BlogPost] = Field(description="Coleção de postagens de blog do site")
+    posts: List[BlogPost] = Field(
+        description="Coleção de postagens de blog do site",
+    )
 
 
 prompt = ChatPromptTemplate.from_messages(
     [
         (
             "system",
-            "Extraia da página os posts do blog com as informações especificadas. "
+            "Extraia da página os posts do blog "
+            "com as informações especificadas. "
             "Traga as cinco primeira informações",
         ),
         ("user", "{input}"),
